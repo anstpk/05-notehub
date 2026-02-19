@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useDebouncedCallback } from 'use-debounce';
 import { fetchNotes } from '../../services/noteService';
 import NoteList from '../NoteList/NoteList';
@@ -15,16 +15,15 @@ const App = () => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Дебаунс для пошуку (вимоги курсу)
   const handleSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
-    setPage(1); // Скидаємо на першу сторінку при новому пошуку
+    setPage(1);
   }, 300);
 
-  // Отримання даних через TanStack Query
   const { data, isLoading, isError } = useQuery({
     queryKey: ['notes', page, search],
     queryFn: () => fetchNotes(page, 12, search),
+    placeholderData: keepPreviousData,
   });
 
   return (
@@ -47,14 +46,16 @@ const App = () => {
       </header>
 
       <main>
-        {isLoading && <p>Loading notes...</p>}
+        {/* Показуємо Loading тільки при першому завантаженні */}
+        {isLoading && !data && <p>Loading notes...</p>}
         {isError && <p>Error loading notes. Please try again later.</p>}
         
-        {/* NoteList тепер не приймає onDelete, він сам керує видаленням */}
+        {/* Список нотаток */}
         {data && data.notes.length > 0 && (
           <NoteList notes={data.notes} />
         )}
 
+        {/* Якщо нотаток немає */}
         {data && data.notes.length === 0 && !isLoading && (
           <p>No notes found.</p>
         )}
