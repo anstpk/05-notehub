@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useDebouncedCallback } from 'use-debounce';
-import { fetchNotes, deleteNote } from '../../services/noteService';
+import { fetchNotes } from '../../services/noteService';
 import NoteList from '../NoteList/NoteList';
 import SearchBox from '../SearchBox/SearchBox';
 import Pagination from '../Pagination/Pagination';
@@ -14,45 +14,49 @@ const App = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = useQueryClient();
 
-  // Дебаунс для пошуку
+  // Дебаунс для пошуку (вимоги курсу)
   const handleSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
-    setPage(1); // Скидаємо на першу сторінку при пошуку
+    setPage(1); // Скидаємо на першу сторінку при новому пошуку
   }, 300);
 
-  const { data, isLoading } = useQuery({
+  // Отримання даних через TanStack Query
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['notes', page, search],
     queryFn: () => fetchNotes(page, 12, search),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
   });
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox onChange={(e) => handleSearch(e.target.value)} />
+        
+        {/* Пагінація рендериться, тільки якщо сторінок більше 1 */}
         {data && data.totalPages > 1 && (
           <Pagination 
             pageCount={data.totalPages} 
+            currentPage={page} 
             onPageChange={(data) => setPage(data.selected + 1)} 
           />
         )}
+        
         <button className={css.button} onClick={() => setIsModalOpen(true)}>
           Create note +
         </button>
       </header>
 
       <main>
-        {isLoading && <p>Loading...</p>}
+        {isLoading && <p>Loading notes...</p>}
+        {isError && <p>Error loading notes. Please try again later.</p>}
+        
+        {/* NoteList тепер не приймає onDelete, він сам керує видаленням */}
         {data && data.notes.length > 0 && (
-          <NoteList notes={data.notes} onDelete={(id) => deleteMutation.mutate(id)} />
+          <NoteList notes={data.notes} />
+        )}
+
+        {data && data.notes.length === 0 && !isLoading && (
+          <p>No notes found.</p>
         )}
       </main>
 

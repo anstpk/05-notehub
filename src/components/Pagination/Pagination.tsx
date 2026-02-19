@@ -4,6 +4,7 @@ import css from './Pagination.module.css';
 interface PaginationProps {
   pageCount: number;
   onPageChange: (selectedItem: { selected: number }) => void;
+  currentPage: number;
 }
 
 const Pagination = ({ pageCount, onPageChange }: PaginationProps) => {
@@ -13,6 +14,7 @@ const Pagination = ({ pageCount, onPageChange }: PaginationProps) => {
       nextLabel="next >"
       onPageChange={onPageChange}
       pageRangeDisplayed={3}
+      forcePage={currentPage - 1}
       pageCount={pageCount}
       previousLabel="< previous"
       containerClassName={css.pagination}
