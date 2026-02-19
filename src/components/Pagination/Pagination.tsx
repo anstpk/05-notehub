@@ -7,7 +7,7 @@ interface PaginationProps {
   currentPage: number;
 }
 
-const Pagination = ({ pageCount, onPageChange }: PaginationProps) => {
+const Pagination = ({ pageCount, onPageChange, currentPage }: PaginationProps) => {
   return (
     <ReactPaginate
       breakLabel="..."
