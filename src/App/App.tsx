@@ -41,7 +41,7 @@ const App = () => {
         {data && data.totalPages > 1 && (
           <Pagination 
             pageCount={data.totalPages} 
-            onPageChange={(selected) => setPage(selected + 1)} 
+            onPageChange={(data) => setPage(data.selected + 1)} 
           />
         )}
         <button className={css.button} onClick={() => setIsModalOpen(true)}>
